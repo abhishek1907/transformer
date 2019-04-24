@@ -11,14 +11,14 @@ from transformer.my_iterator import MyIterator, rebatch
 from transformer.noam_opt import NoamOpt
 import logging
 
-LOG_FILE = '/home/abhishekmand/annotated-transformer_codes/log/logged.log'
+LOG_FILE = '/home/abhishekmand/transformer/log/logged.log'
 logging.basicConfig(filename= LOG_FILE, filemode='w', level=logging.DEBUG)
 logging.getLogger().addHandler(logging.StreamHandler())
 # GPUs to use
 devices = [0]  # Or use [0, 1] etc for multiple GPUs
 BATCH_SIZE = 10000
 SAVE_EVERY = 5
-SAVE_DIR = '/home/abhishekmand/annotated-transformer_codes/saved_models/'
+SAVE_DIR = '/home/abhishekmand/transformer/saved_models/'
 EPOCHS = 100
 BOS_WORD = '<s>'
 EOS_WORD = '</s>'

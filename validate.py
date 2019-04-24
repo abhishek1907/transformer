@@ -6,17 +6,17 @@ from torchtext import data, datasets
 from transformer.flow import make_model, batch_size_fn, run_epoch
 from transformer.greedy import greedy_decode
 from transformer.my_iterator import MyIterator, rebatch
-WRITE_FILE = '/home/abhishekmand/annotated-transformer_codes/log/translations.txt'
-LOG_FILE = '/home/abhishekmand/annotated-transformer_codes/log/logged.log'
+WRITE_FILE = '/home/abhishekmand/transformer/log/translations.txt'
+LOG_FILE = '/home/abhishekmand/transformer/log/logged.log'
 logging.basicConfig(filename= LOG_FILE, filemode='w', level=logging.DEBUG)
 logging.getLogger().addHandler(logging.StreamHandler())
 
-SAVE_DIR = '/home/abhishekmand/annotated-transformer_codes/saved_models/'
+SAVE_DIR = '/home/abhishekmand/transformer/saved_models/'
 MODEL_FILE = 'model_10_1.9577244238077522.pt'
 BOS_WORD = '<s>'
 EOS_WORD = '</s>'
 BLANK_WORD = '<blank>'
-BATCH_SIZE = 200
+BATCH_SIZE = 1
 
 
 def tokenize_de(text):
@@ -41,7 +41,7 @@ data_fields = [('src', SRC), ('trg', TGT)]
 
 train, val, test = data.TabularDataset.splits(path='./data', train='train.csv', validation='val.csv', test='test.csv', format='csv', fields=data_fields, skip_header=True)
 
-test_iter = MyIterator(test, batch_size=BATCH_SIZE, device=0, repeat=False, sort_key=lambda x: (len(x.src), len(x.trg)), batch_size_fn=batch_size_fn, train=False)
+test_iter = data.Iterator(test, batch_size=BATCH_SIZE, device=0, repeat=False, sort_key=lambda x: (len(x.src), len(x.trg)), batch_size_fn=None, train=False, sort=False)
 
 logging.info('Started Decoding process!')
 write_file = open(WRITE_FILE, "w+")
