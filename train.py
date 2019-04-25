@@ -11,14 +11,14 @@ from transformer.my_iterator import MyIterator, rebatch
 from transformer.noam_opt import NoamOpt
 import logging
 
-LOG_FILE = '/home/abhishekmand/transformer/log/logged.log'
+LOG_FILE = './log/logged.log'
 logging.basicConfig(filename= LOG_FILE, filemode='w', level=logging.DEBUG)
 logging.getLogger().addHandler(logging.StreamHandler())
 # GPUs to use
 devices = [0]  # Or use [0, 1] etc for multiple GPUs
 BATCH_SIZE = 10000
 SAVE_EVERY = 5
-SAVE_DIR = '/home/abhishekmand/transformer/saved_models/'
+SAVE_DIR = './saved_models/'
 EPOCHS = 100
 BOS_WORD = '<s>'
 EOS_WORD = '</s>'
@@ -87,25 +87,4 @@ if True:
             'SRC' : SRC,
             'TGT' :TGT
             }, SAVE_DIR + 'model_{}_{}.pt'.format(epoch, loss))
-else:
-    model = torch.load('iwslt.pt')
 
-for i, batch in enumerate(valid_iter):
-    src = batch.src.transpose(0, 1)[:1]
-    src_mask = (src != SRC.vocab.stoi[BLANK_WORD]).unsqueeze(-2)
-    out = greedy_decode(model, src, src_mask, max_len=60, start_symbol=TGT.vocab.stoi[BOS_WORD])
-    print('Translation:', end='\t')
-    for i in range(1, out.size(1)):
-        sym = TGT.vocab.itos[out[0, i]]
-        if sym == EOS_WORD:
-            break
-        print(sym, end=' ')
-    print()
-    print('Target:', end='\t')
-    for i in range(batch.trg.size(0)):
-        sym = TGT.vocab.itos[batch.trg.data[i, 0]]
-        if sym == EOS_WORD:
-            break
-        print(sym, end=' ')
-    print()
-    break
