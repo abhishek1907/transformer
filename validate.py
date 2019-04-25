@@ -7,6 +7,7 @@ from transformer.flow import make_model, batch_size_fn, run_epoch
 from transformer.greedy import greedy_decode
 from transformer.my_iterator import MyIterator, rebatch
 WRITE_FILE = './log/translations.txt'
+TARGET_FILE = './log/target.txt'
 LOG_FILE = './log/logged.log'
 logging.basicConfig(filename= LOG_FILE, filemode='w', level=logging.DEBUG)
 logging.getLogger().addHandler(logging.StreamHandler())
@@ -45,6 +46,7 @@ test_iter = MyIterator(test, batch_size=BATCH_SIZE, device=0, repeat=False,
                             sort_key=lambda x: (len(x.src), len(x.trg)), batch_size_fn=batch_size_fn, train=False)
 logging.info('Started Decoding process!')
 write_file = open(WRITE_FILE, "w+")
+target_file = open(TARGET_FILE, "w+")
 for i, batch in enumerate(test_iter):
     logging.info("Iteration {} started!".format(i))
     src = batch.src.transpose(0, 1)
@@ -53,19 +55,20 @@ for i, batch in enumerate(test_iter):
     #logging.info("Source Size = {}".format(src.size()))
     out = greedy_decode(model, src, src_mask, max_len=100, start_symbol=TGT.vocab.stoi[BOS_WORD])
     for j in range(out.size(0)):
-        write_file.write('Translation:' + '\t')
+        #write_file.write('Translation:' + '\t')
         for k in range(1, out.size(1)):
             sym = TGT.vocab.itos[out[j, k]]
             if sym == EOS_WORD:
                 break
             write_file.write(sym + ' ')
         write_file.write('\n')
-        write_file.write('Target:' + '\t')
+        #target_file.write('Target:' + '\t')
     
-        for k in range(batch.trg.size(0)):
+        for k in range(1, batch.trg.size(0)):
             sym = TGT.vocab.itos[batch.trg.data[k, j]]
             if sym == EOS_WORD:
                 break
-            write_file.write(sym + ' ')
-        write_file.write('\n')
+            target_file.write(sym + ' ')
+        target_file.write('\n')
+target_file.close()
 write_file.close()
