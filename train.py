@@ -16,9 +16,9 @@ logging.basicConfig(filename= LOG_FILE, filemode='w', level=logging.DEBUG)
 logging.getLogger().addHandler(logging.StreamHandler())
 # GPUs to use
 devices = [0]  # Or use [0, 1] etc for multiple GPUs
-BATCH_SIZE = 10000
-SAVE_EVERY = 5
-SAVE_DIR = './saved_models/'
+BATCH_SIZE = 5000
+SAVE_EVERY = 1
+SAVE_DIR = './saved_models/fin_nlayer_3'
 EPOCHS = 100
 BOS_WORD = '<s>'
 EOS_WORD = '</s>'
@@ -26,11 +26,13 @@ BLANK_WORD = '<blank>'
 
 
 def tokenize_de(text):
-    return [tok.text for tok in spacy_de.tokenizer(text)]
+    return text.split()
+    # return [tok.text for tok in spacy_de.tokenizer(text)]
 
 
 def tokenize_en(text):
-    return [tok.text for tok in spacy_en.tokenizer(text)]
+    return text.split()
+    # return [tok.text for tok in spacy_en.tokenizer(text)]
 
 
 SRC = data.Field(tokenize=tokenize_de, pad_token=BLANK_WORD)
@@ -38,13 +40,13 @@ TGT = data.Field(tokenize=tokenize_en, init_token=BOS_WORD,
                  eos_token=EOS_WORD, pad_token=BLANK_WORD)
 
 if True:
-    spacy_de = spacy.load('de')
-    spacy_en = spacy.load('en')
+    # spacy_de = spacy.load('de')
+    # spacy_en = spacy.load('en')
 
     data_fields = [('src', SRC), ('trg', TGT)]
 
     logging.info("Loading dataset from CSV")
-    train, val, test = data.TabularDataset.splits(path='./data', train='train.csv', validation='val.csv', test='test.csv', format='csv', fields=data_fields, skip_header=True)
+    train, val, test = data.TabularDataset.splits(path='./data', train='train_fin.csv', validation='val_fin.csv', test='test_fin.csv', format='csv', fields=data_fields, skip_header=True)
 
     SRC.build_vocab(train.src)
     TGT.build_vocab(train.trg)
@@ -57,7 +59,7 @@ if True:
     TGT.build_vocab(train.trg, min_freq=MIN_FREQ)
 
     pad_idx = TGT.vocab.stoi[BLANK_WORD]
-    model = make_model(len(SRC.vocab), len(TGT.vocab), n=6)
+    model = make_model(len(SRC.vocab), len(TGT.vocab), n=3, dropout=0.3)
     model.cuda()
     criterion = LabelSmoothing(size=len(TGT.vocab), padding_idx=pad_idx, smoothing=0.1)
     criterion.cuda()
@@ -67,8 +69,8 @@ if True:
                             sort_key=lambda x: (len(x.src), len(x.trg)), batch_size_fn=batch_size_fn, train=False)
     model_par = nn.DataParallel(model, device_ids=devices)
 
-    model_opt = NoamOpt(model.src_embed[0].d_model, 1, 2000,
-                        torch.optim.Adam(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9))
+    model_opt = NoamOpt(model.src_embed[0].d_model, 2, 4000,
+                        torch.optim.Adam(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9, weight_decay=0.0001))
     for epoch in range(EPOCHS):
         model_par.train()
         run_epoch((rebatch(pad_idx, b) for b in train_iter), model_par,

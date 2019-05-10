@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 
 TEST_SIZE = 0.05
 
-MAX_LEN = 100
+MAX_LEN = 1000
 
 train_de = open('./data/train.de', encoding='utf-8').read().split('\n')
 train_en = open('./data/train.en', encoding='utf-8').read().split('\n')
